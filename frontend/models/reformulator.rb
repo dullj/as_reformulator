@@ -1,9 +1,24 @@
 #
-#  This is included as an example configuration
-#  Either edit this file or copy it to your own plugin to configure the reformulator
+#  See below for an example of how to configure
 #
-# module Reformulator
-#   CONFIG = {
+class Reformulator
+
+  def self.configure(config)
+    # FIXME: consider adding some validation
+    @config = config
+  end
+
+  def self.configuration
+    @config ||= {}
+
+    $stderr.puts("WARNING: as_reformulator has not been configured. Please call Reformulator.configure(Hash) to configure.") if @config.empty?
+
+    @config
+  end    
+
+end
+
+#  Reformulator.configure({
 #     "_global" => {
 #       "hideFields" => [
 #         {
@@ -109,6 +124,4 @@
 #           {"path" => ["agent_dates_of_existence_", "_date_type_"], "value" => "range"}
 #         ]
 #       }
-#     },
-#   }
-# end
+#     })

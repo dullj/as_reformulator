@@ -2,6 +2,6 @@
 
 <script>
   $(function () {
-      new Reformulator(<%== ASUtils.to_json(Reformulator::CONFIG) %>, '<%= controller_name %>');
+      new Reformulator(<%== ASUtils.to_json(Reformulator.configuration) %>, '<%= controller_name %>');
   });
 </script>
