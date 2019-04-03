@@ -1,0 +1,7 @@
+<%= javascript_include_tag "#{AppConfig[:frontend_proxy_prefix]}assets/reformulator.js" %>
+
+<script>
+  $(function () {
+      new Reformulator(<%== ASUtils.to_json(Reformulator::CONFIG) %>, '<%= controller_name %>');
+  });
+</script>
