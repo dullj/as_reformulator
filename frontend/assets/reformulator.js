@@ -1,14 +1,11 @@
 class Reformulator {
     constructor (config, controller) {
+        this.globalRules = config._global || {};
         this.config = config[controller] || {};
         this.controller = controller;
-        this.globalRules = config._global || {};
 
-        if (!this.config[controller]) {
-            this.config[controller] = {};
-        }
         $(document).on("loadedrecordform.aspace", () => { this.simplify(); });
-        this.simplify();
+
         $(document).on("subrecordcreated.aspace", (event, objectName, subform) => {
             // In modals, `subform` can have multiple matches, which are not distinguishable from the subform torget we want.
             // So just process all of them
@@ -23,16 +20,18 @@ class Reformulator {
                     return;
                 }
                 const topmostSectionId = topmostSection.id;
-                const configSection = this.config[controller][topmostSectionId];
+                const configSection = this.config[topmostSectionId];
+
                 if (typeof configSection === 'undefined' || typeof configSection.show === 'undefined') {
                     return;
                 }
-                this.config[controller][topmostSectionId].show.forEach(showFieldNames => {
+
+                this.config[topmostSectionId].show.forEach(showFieldNames => {
                     if (Array.isArray(showFieldNames) &&
                         showFieldNames.filter(element => splitConfigNames.map(
                             element => element.replace('${index}_', '')).includes(element))
                     ) {
-                        this.parseSubsectionVisibility(subformValue, this.config[controller][topmostSectionId], subsectionId);
+                        this.parseSubsectionVisibility(subformValue, this.config[topmostSectionId], subsectionId);
                     }
                 });
             });
