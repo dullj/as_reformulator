@@ -53,13 +53,18 @@ class Reformulator {
                     if (targetSection) {
                         section.parentNode.removeChild(section);
                         targetSection.parentNode.insertBefore(section, targetSection.nextSibling);
+
+			const sidebarLi = this.sidebarEntryForSection(sectionId);
+			const targetSidebarLi = this.sidebarEntryForSection(currentSectionConfig.moveSectionAfter);
+			const sidebarUl = sidebarLi.parentNode;
+			sidebarUl.removeChild(sidebarLi);
+			sidebarUl.insertBefore(sidebarLi, targetSidebarLi.nextSibling);
                     }
                 }
 
                 if (typeof currentSectionConfig.show !== 'undefined' && currentSectionConfig.show.length === 0) {
                     section.classList.add('hide');
-                    // Check by class name, or by href
-                    const sidebarElement = document.querySelector(`[class*='sidebar-entry-${sectionId}'],[href='#${sectionId}']`);
+                    const sidebarElement = this.sidebarEntryForSection(sectionId);
                     if (!!sidebarElement) {
                         sidebarElement.classList.add('hide');
                     }
@@ -68,6 +73,12 @@ class Reformulator {
             });
 
         this.applyGlobalRules(document);
+    }
+
+    sidebarEntryForSection(section) {
+	// Return the <li> for the given section id.
+	// Note that the basic_information section doesn't have the handy class, so or with href
+	return document.querySelector(`li[class*='sidebar-entry-${section}'], li > a[href='#${section}']`).closest('li');
     }
 
     parseSectionFields (sectionField, config, configFieldId) {
