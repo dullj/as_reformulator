@@ -96,7 +96,7 @@ class Reformulator {
 
         // Add default values from config
         const defaultMatch = config.defaultValues.find(value => value.path.join('') === configFieldId);
-        const defaultValue = !!defaultMatch ? defaultMatch.value : undefined;
+        const defaultValue = this.defaultValueForRule(defaultMatch);
         if (typeof defaultValue !== 'undefined') {
             switch (sectionField.tagName) {
                 case 'SELECT':
@@ -174,6 +174,16 @@ class Reformulator {
         }
     }
 
+    defaultValueForRule(rule) {
+	if (!rule) { return undefined; } 
+
+	if (rule.hasOwnProperty('valueSelector')) {
+	    return document.querySelector(rule.valueSelector).value;
+	} else {
+	    return rule.value;
+	}
+    }
+
     findElementsMatchingRule (rootElement, rule) {
         const result = [];
 
@@ -192,7 +202,7 @@ class Reformulator {
         // Set defaults as appropriate
         (this.globalRules.defaultValues || []).forEach(rule => {
             this.findElementsMatchingRule(element, rule).forEach(match => {
-                this.setInputValueWithChangeEvent(match, rule.value);
+		this.setInputValueWithChangeEvent(match, this.defaultValueForRule(rule));
             });
         });
 
