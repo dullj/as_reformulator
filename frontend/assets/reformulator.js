@@ -95,10 +95,11 @@ class Reformulator {
         }
 
         // Add default values from config
-        const defaultMatch = config.defaultValues.find(value => value.path.join('') === configFieldId);
-        const defaultValue = this.defaultValueForRule(defaultMatch);
-        if (typeof defaultValue !== 'undefined') {
-            switch (sectionField.tagName) {
+	if (config.hasOwnProperty('defaultValues')) {
+	    const defaultMatch = config.defaultValues.find(value => value.path.join('') === configFieldId);
+	    const defaultValue = this.defaultValueForRule(defaultMatch);
+	    if (typeof defaultValue !== 'undefined') {
+		switch (sectionField.tagName) {
                 case 'SELECT':
                     if (!Array.apply(null, sectionField.options).map(option => option.value).includes(defaultValue)) {
                         throw new Error('Value provided does not match values listed in the target select element');
@@ -115,11 +116,34 @@ class Reformulator {
                     break;
                 default:
                     throw new Error(`Unexpected field tag: ${sectionField.tagName}`);
-            }
-        }
+		}
+	    }
+	}
+
+	// Apply field moves from config
+	if (config.hasOwnProperty('fieldMoves')) {
+	    const fieldMatch = config.fieldMoves.find(value => value.path.join('') === configFieldId);
+	    if (typeof fieldMatch !== 'undefined') {
+		const section = sectionField.closest('section');
+		const fieldSet = sectionField.closest('fieldset, .subrecord-form-fields, .form-horizontal, section');
+		const moveAfter = fieldSet.querySelector(`[for$='${fieldMatch.moveAfter}']`).closest('.form-group');
+		const formGroup = sectionField.closest('.form-group');
+		if (typeof moveAfter !== 'undefined') {
+		    fieldSet.removeChild(formGroup);
+		    fieldSet.insertBefore(formGroup, moveAfter.nextSibling);
+		}
+	    }
+	}
     }
 
     parseSectionVisibility (section, config) {
+	if (section.id == 'basic_information') {
+	    section.querySelectorAll(".control-label:not([type='hidden'])").forEach(field => {
+	        this.parseSectionFields(field, config, field.getAttribute('for'));
+	    });
+	    return;
+	}
+
         // Check if it's a section or subsection
         const subsectionList = section.querySelector('ul.subrecord-form-list');
         if (subsectionList === null) {
