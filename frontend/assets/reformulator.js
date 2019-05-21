@@ -95,51 +95,53 @@ class Reformulator {
         }
 
         // Add default values from config
-	if (config.hasOwnProperty('defaultValues')) {
-	    const defaultMatch = config.defaultValues.find(value => value.path.join('') === configFieldId);
-	    const defaultValue = this.defaultValueForRule(defaultMatch);
-	    if (typeof defaultValue !== 'undefined') {
-		switch (sectionField.tagName) {
-                case 'SELECT':
-                    if (!Array.apply(null, sectionField.options).map(option => option.value).includes(defaultValue)) {
-                        throw new Error('Value provided does not match values listed in the target select element');
-                    } else {
+        if (config.hasOwnProperty('defaultValues')) {
+            const defaultMatch = config.defaultValues.find(value => value.path.join('') === configFieldId);
+            const defaultValue = this.defaultValueForRule(defaultMatch);
+            if (typeof defaultValue !== 'undefined') {
+                switch (sectionField.tagName) {
+                    case 'SELECT':
+                        if (!Array.apply(null, sectionField.options).map(option => option.value).includes(defaultValue)) {
+                            throw new Error('Value provided does not match values listed in the target select element');
+                        } else {
+                            this.setInputValueWithChangeEvent(sectionField, defaultValue);
+                        }
+                        break;
+                    case 'INPUT':
+                        if (sectionField.type === 'checkbox' && typeof defaultValue !== 'boolean') {
+                            throw new Error(`Expected checkbox value to be boolean, but found: ${defaultValue}`);
+                        }
+                    case 'TEXTAREA':
                         this.setInputValueWithChangeEvent(sectionField, defaultValue);
-                    }
-                    break;
-                case 'INPUT':
-                    if (sectionField.type === 'checkbox' && typeof defaultValue !== 'boolean') {
-                        throw new Error(`Expected checkbox value to be boolean, but found: ${defaultValue}`);
-                    }
-                case 'TEXTAREA':
-                    this.setInputValueWithChangeEvent(sectionField, defaultValue);
-                    break;
-                default:
-                    throw new Error(`Unexpected field tag: ${sectionField.tagName}`);
-		}
-	    }
-	}
+                        break;
+                    default:
+                        throw new Error(`Unexpected field tag: ${sectionField.tagName}`);
+                }
+            }
+        }
 
-	// Apply field moves from config
-	if (config.hasOwnProperty('fieldMoves')) {
-	    const fieldMatch = config.fieldMoves.find(value => value.path.join('') === configFieldId);
-	    if (typeof fieldMatch !== 'undefined') {
-		const section = sectionField.closest('section');
-		const fieldSet = sectionField.closest('fieldset, .subrecord-form-fields, .form-horizontal, section');
-		const moveAfter = fieldSet.querySelector(`[for$='${fieldMatch.moveAfter}']`).closest('.form-group');
-		const formGroup = sectionField.closest('.form-group');
-		if (typeof moveAfter !== 'undefined') {
-		    fieldSet.removeChild(formGroup);
-		    fieldSet.insertBefore(formGroup, moveAfter.nextSibling);
-		}
-	    }
-	}
+        // Apply field moves from config
+        if (config.hasOwnProperty('fieldMoves')) {
+            const fieldMatch = config.fieldMoves.find(value => value.path.join('') === configFieldId);
+            if (typeof fieldMatch !== 'undefined') {
+                const section = sectionField.closest('section');
+                const fieldSet = sectionField.closest('fieldset, .subrecord-form-fields, .form-horizontal, section');
+                const moveAfter = fieldSet.querySelector(`[for$='${fieldMatch.moveAfter}']`).closest('.form-group');
+                const formGroup = sectionField.closest('.form-group');
+                if (typeof moveAfter !== 'undefined') {
+                    const parentContainer = formGroup.parentElement;
+                    parentContainer.removeChild(formGroup);
+                    parentContainer.insertBefore(formGroup, moveAfter.nextSibling);
+                }
+            }
+        }
     }
 
     parseSectionVisibility (section, config) {
 	if (section.id == 'basic_information') {
-	    section.querySelectorAll(".control-label:not([type='hidden'])").forEach(field => {
-	        this.parseSectionFields(field, config, field.getAttribute('for'));
+	    section.querySelectorAll(".control-label:not([type='hidden'])").forEach(fieldLabel => {
+	        const field = fieldLabel.parentElement.querySelector(`#${fieldLabel.getAttribute('for')}`);
+	        this.parseSectionFields(field, config, fieldLabel.getAttribute('for'));
 	    });
 	    return;
 	}
@@ -182,7 +184,7 @@ class Reformulator {
     }
 
     setInputValueWithChangeEvent (input, value) {
-        if (input.value !== value && input.value === '') {
+        if (input.value !== value) {
             input.value = value;
 
             if (input.closest('.combobox-container')) {
@@ -199,7 +201,7 @@ class Reformulator {
     }
 
     defaultValueForRule(rule) {
-	if (!rule) { return undefined; } 
+	if (!rule) { return undefined; }
 
 	if (rule.hasOwnProperty('valueSelector')) {
 	    return document.querySelector(rule.valueSelector).value;
