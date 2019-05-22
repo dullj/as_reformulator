@@ -216,7 +216,8 @@ class Reformulator {
         rootElement.querySelectorAll(rule.selector)
                    .forEach(element => {
                        if ((!rule.nameMustMatchRegex || element.name.match(rule.nameMustMatchRegex)) &&
-                           (!rule.nameMustNotMatchRegex || !element.name.match(rule.nameMustNotMatchRegex))) {
+                           (!rule.nameMustNotMatchRegex || !element.name.match(rule.nameMustNotMatchRegex)) &&
+                           (!rule.onlyIfEmpty || !element.value)) {
                            result.push(element);
                        }
                     });
