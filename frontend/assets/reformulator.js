@@ -140,7 +140,12 @@ class Reformulator {
     parseSectionVisibility (section, config) {
 	if (section.id == 'basic_information') {
 	    section.querySelectorAll(".control-label:not([type='hidden'])").forEach(fieldLabel => {
-	        const field = fieldLabel.parentElement.querySelector(`#${fieldLabel.getAttribute('for')}`);
+	        let field = fieldLabel.parentElement.querySelector(`#${fieldLabel.getAttribute('for')}`);
+
+                if (field == null) {
+                    field = fieldLabel;
+                }
+
 	        this.parseSectionFields(field, config, fieldLabel.getAttribute('for'));
 	    });
 	    return;
