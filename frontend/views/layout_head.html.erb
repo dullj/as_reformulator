@@ -1,7 +1,7 @@
 <%= javascript_include_tag "#{AppConfig[:frontend_proxy_prefix]}assets/reformulator.js" %>
 
 <script>
-  $(function () {
-      new Reformulator(<%== ASUtils.to_json(Reformulator.configuration) %>, '<%= controller_name %>');
-  });
+  // no longer waiting for document ready to be sure the handlers are in place
+  // before they get triggered.
+  new Reformulator(<%== ASUtils.to_json(Reformulator.configuration) %>, '<%= controller_name %>');
 </script>
