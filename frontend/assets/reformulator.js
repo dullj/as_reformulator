@@ -55,10 +55,12 @@ class Reformulator {
                         targetSection.parentNode.insertBefore(section, targetSection.nextSibling);
 
 			const sidebarLi = this.sidebarEntryForSection(sectionId);
-			const targetSidebarLi = this.sidebarEntryForSection(currentSectionConfig.moveSectionAfter);
-			const sidebarUl = sidebarLi.parentNode;
-			sidebarUl.removeChild(sidebarLi);
-			sidebarUl.insertBefore(sidebarLi, targetSidebarLi.nextSibling);
+                        if (!!sidebarLi) {
+			    const targetSidebarLi = this.sidebarEntryForSection(currentSectionConfig.moveSectionAfter);
+			    const sidebarUl = sidebarLi.parentNode;
+			    sidebarUl.removeChild(sidebarLi);
+			    sidebarUl.insertBefore(sidebarLi, targetSidebarLi.nextSibling);
+			}
                     }
                 }
 
@@ -78,7 +80,8 @@ class Reformulator {
     sidebarEntryForSection(section) {
 	// Return the <li> for the given section id.
 	// Note that the basic_information section doesn't have the handy class, so or with href
-	return document.querySelector(`li[class*='sidebar-entry-${section}'], li > a[href='#${section}']`).closest('li');
+	var sb =  document.querySelector(`li[class*='sidebar-entry-${section}'], li > a[href='#${section}']`);
+	return sb ? sb.closest('li') : false;
     }
 
     parseSectionFields (sectionField, config, configFieldId) {
