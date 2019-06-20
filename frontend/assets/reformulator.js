@@ -10,6 +10,12 @@ class Reformulator {
             // In modals, `subform` can have multiple matches, which are not distinguishable from the subform torget we want.
             // So just process all of them
             subform.each((subformIndex, subformValue) => {
+                if (!subformValue.closest('ul.subrecord-form-list')) {
+                    console.error("closest('ul.subrecord-form-list ') returned null for element",
+                                  subformValue);
+                    return;
+                }
+
                 const idPath = subformValue.closest('ul.subrecord-form-list').dataset.idPath;
                 const index = subformValue.closest('ul.subrecord-form-list li').dataset.index;
                 const subsectionId = this.getItemPath(idPath, index);
