@@ -4,9 +4,9 @@ class Reformulator {
         this.config = config[controller] || {};
         this.controller = controller;
 
-        $(document).on("loadedrecordform.aspace", () => { this.simplify(); });
+        $(document).on("loadedrecordform.aspace", this.logExceptions(() => { this.simplify(); }));
 
-        $(document).on("subrecordcreated.aspace", (event, objectName, subform) => {
+        $(document).on("subrecordcreated.aspace", this.logExceptions((event, objectName, subform) => {
             // In modals, `subform` can have multiple matches, which are not distinguishable from the subform torget we want.
             // So just process all of them
             subform.each((subformIndex, subformValue) => {
@@ -37,9 +37,20 @@ class Reformulator {
             });
 
             if (subform[0]) {
-                this.applyGlobalRules(subform[0]);
+                this.logExceptions(() => { this.applyGlobalRules(subform[0]); })();
             }
-        });
+        }));
+
+    // Return a version of `fn` with exceptions caught & logged
+    logExceptions (fn) {
+        return (...args) => {
+            try {
+                return fn(...args);
+            } catch (e) {
+                console.error(e);
+                return null;
+            }
+        };
     }
 
     simplify () {
