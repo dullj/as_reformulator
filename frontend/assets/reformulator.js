@@ -63,7 +63,7 @@ class Reformulator {
     }
 
     simplify () {
-        document.querySelectorAll('div.record-pane section')
+        document.querySelectorAll('div.record-pane section, div.subrecord-form-container section')
             .forEach((section) => {
                 const sectionId = section.id;
                 const currentSectionConfig = this.config[sectionId];
