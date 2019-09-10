@@ -149,12 +149,15 @@ class Reformulator {
             if (typeof fieldMatch !== 'undefined') {
                 const section = sectionField.closest('section');
                 const fieldSet = sectionField.closest('fieldset, .subrecord-form-fields, .form-horizontal, section');
-                const moveAfter = fieldSet.querySelector(`[for$='${fieldMatch.moveAfter}']`).closest('.form-group');
-                const formGroup = sectionField.closest('.form-group');
-                if (typeof moveAfter !== 'undefined') {
-                    const parentContainer = formGroup.parentElement;
-                    parentContainer.removeChild(formGroup);
-                    parentContainer.insertBefore(formGroup, moveAfter.nextSibling);
+                const moveAfterLabel = fieldSet.querySelector(`[for$='${fieldMatch.moveAfter}']`)
+                if (moveAfterLabel != null) {
+                    const moveAfter = moveAfterLabel.closest('.form-group');
+                    const formGroup = sectionField.closest('.form-group');
+                    if (typeof moveAfter !== 'undefined') {
+                        const parentContainer = formGroup.parentElement;
+                        parentContainer.removeChild(formGroup);
+                        parentContainer.insertBefore(formGroup, moveAfter.nextSibling);
+                    }
                 }
             }
         }
