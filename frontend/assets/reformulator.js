@@ -69,7 +69,7 @@ class Reformulator {
                 const currentSectionConfig = this.config[sectionId];
                 if (typeof currentSectionConfig === 'undefined') { return; }
                 if (currentSectionConfig.moveSectionAfter) {
-                    const targetSection = document.querySelector(`#${currentSectionConfig.moveSectionAfter}`);
+                    const targetSection = this.sectionForSelector(currentSectionConfig.moveSectionAfter);
                     if (targetSection) {
                         section.parentNode.removeChild(section);
                         targetSection.parentNode.insertBefore(section, targetSection.nextSibling);
@@ -97,11 +97,41 @@ class Reformulator {
         this.applyGlobalRules(document);
     }
 
+    sectionForSelector(selector) {
+      // try the old-fashioned way - direct id match
+      var section = document.querySelector(`#${selector}`);
+
+      if (!!section) {
+        return section;
+      }
+
+      // didn't find it so let's get crazy! match on section ids ending with the selector
+      var sectionSelector = 'div.record-pane section';
+      var sections = document.querySelectorAll(`${sectionSelector}[id$=${selector}]`);
+
+      if (sections.length == 0) {
+        // the crazy selector didn't find anything, so resort to all sections
+        sections = document.querySelectorAll(sectionSelector);
+      }
+
+      return sections[sections.length - 1];
+    }
+
     sidebarEntryForSection(section) {
-	// Return the <li> for the given section id.
-	// Note that the basic_information section doesn't have the handy class, so or with href
-	var sb =  document.querySelector(`li[class*='sidebar-entry-${section}'], li > a[href='#${section}']`);
-	return sb ? sb.closest('li') : false;
+      // Return the <li> for the given section id.
+      // Note that the basic_information section doesn't have the handy class, so or with href
+      var sb =  document.querySelector(`${sidebarSelector} li[class*='sidebar-entry-${section}'], ${sidebarSelector} li > a[href='#${section}']`);
+      var sidebarSelector = 'div#archivesSpaceSidebar';
+
+      if (!sb) {
+        var sball = document.querySelectorAll(`${sidebarSelector} li[class*='sidebar-entry-'][class*='${section}'], ${sidebarSelector} li > a[href$='${section}']`);
+        if (sball.length == 0) {
+          sball = document.querySelectorAll(`${sidebarSelector} ul:first-of-type li`);
+        }
+        sb = sball[sball.length - 1];
+      }
+
+      return sb ? sb.closest('li') : false;
     }
 
     parseSectionFields (sectionField, config, configFieldId) {
