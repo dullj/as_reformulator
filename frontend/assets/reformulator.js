@@ -72,15 +72,20 @@ class Reformulator {
                     const targetSection = this.sectionForSelector(currentSectionConfig.moveSectionAfter);
                     if (targetSection) {
                         section.parentNode.removeChild(section);
-                        targetSection.parentNode.insertBefore(section, targetSection.nextSibling);
+                        targetSection.parentNode.insertBefore(section, targetSection.nextElementSibling);
 
-			const sidebarLi = this.sidebarEntryForSection(sectionId);
+                        const sidebarLi = this.sidebarEntryForSection(sectionId);
                         if (!!sidebarLi) {
-			    const targetSidebarLi = this.sidebarEntryForSection(currentSectionConfig.moveSectionAfter);
-			    const sidebarUl = sidebarLi.parentNode;
-			    sidebarUl.removeChild(sidebarLi);
-			    sidebarUl.insertBefore(sidebarLi, targetSidebarLi.nextSibling);
-			}
+                            const targetSidebarLi = this.sidebarEntryForSection(currentSectionConfig.moveSectionAfter);
+                            const sidebarUl = sidebarLi.parentNode;
+
+                            var nextSib = targetSidebarLi.nextElementSibling;
+
+                            if (nextSib && nextSib != sidebarLi) {
+                                sidebarUl.removeChild(sidebarLi);
+   			                        sidebarUl.insertBefore(sidebarLi, nextSib);
+                            }
+			                  }
                     }
                 }
 
@@ -106,7 +111,7 @@ class Reformulator {
       }
 
       // didn't find it so let's get crazy! match on section ids ending with the selector
-      var sectionSelector = 'div.record-pane section';
+      var sectionSelector = 'section';
       var sections = document.querySelectorAll(`${sectionSelector}[id$=${selector}]`);
 
       if (sections.length == 0) {
@@ -120,8 +125,8 @@ class Reformulator {
     sidebarEntryForSection(section) {
       // Return the <li> for the given section id.
       // Note that the basic_information section doesn't have the handy class, so or with href
-      var sb =  document.querySelector(`${sidebarSelector} li[class*='sidebar-entry-${section}'], ${sidebarSelector} li > a[href='#${section}']`);
       var sidebarSelector = 'div#archivesSpaceSidebar';
+      var sb =  document.querySelector(`${sidebarSelector} li[class*='sidebar-entry-${section}'], ${sidebarSelector} li > a[href='#${section}']`);
 
       if (!sb) {
         var sball = document.querySelectorAll(`${sidebarSelector} li[class*='sidebar-entry-'][class*='${section}'], ${sidebarSelector} li > a[href$='${section}']`);
