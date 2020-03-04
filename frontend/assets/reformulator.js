@@ -199,18 +199,32 @@ class Reformulator {
     }
 
     parseSectionVisibility (section, config) {
-	if (section.id == 'basic_information') {
-	    section.querySelectorAll(".control-label:not([type='hidden'])").forEach(fieldLabel => {
-	        let field = fieldLabel.parentElement.querySelector(`#${fieldLabel.getAttribute('for')}`);
+        if (config.hasOwnProperty('fieldOrder')) {
+            const orderedFields = config.fieldOrder.reverse();
+            orderedFields.forEach(fld => {
+                const label = section.querySelector(`.control-label[for=${fld.path.join('')}]`);
+
+                if (!!label) {
+                    const elt = label.parentElement;
+                    const parent = elt.parentElement;
+                    parent.removeChild(elt);
+                    parent.insertBefore(elt, parent.querySelector('.form-group'));
+                }
+            });
+        }
+
+        if (section.id == 'basic_information') {
+            section.querySelectorAll(".control-label:not([type='hidden'])").forEach(fieldLabel => {
+                let field = fieldLabel.parentElement.querySelector(`#${fieldLabel.getAttribute('for')}`);
 
                 if (field == null) {
                     field = fieldLabel;
                 }
 
-	        this.parseSectionFields(field, config, fieldLabel.getAttribute('for'));
-	    });
-	    return;
-	}
+                this.parseSectionFields(field, config, fieldLabel.getAttribute('for'));
+            });
+            return;
+        }
 
         // Check if it's a section or subsection
         const subsectionList = section.querySelector('ul.subrecord-form-list');
