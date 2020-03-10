@@ -70,9 +70,9 @@ class Reformulator {
                 if (typeof currentSectionConfig === 'undefined') { return; }
                 if (currentSectionConfig.moveSectionAfter) {
                     const targetSection = this.sectionForSelector(currentSectionConfig.moveSectionAfter);
-                    if (targetSection) {
-                        section.parentNode.removeChild(section);
-                        targetSection.parentNode.insertBefore(section, targetSection.nextElementSibling);
+                    if (targetSection && targetSection != section) {
+                        section.parentElement.removeChild(section);
+                        targetSection.parentElement.insertBefore(section, targetSection.nextElementSibling);
 
                         const sidebarLi = this.sidebarEntryForSection(sectionId);
                         if (!!sidebarLi) {
@@ -200,13 +200,17 @@ class Reformulator {
 
     parseSectionVisibility (section, config) {
         if (config.hasOwnProperty('fieldOrder')) {
-            const orderedFields = config.fieldOrder.reverse();
+            // the slice(0) here is powerful foo that clones the array rather than mutating it
+            // which is what reverse() very conveniently does ...
+            var orderedFields = config.fieldOrder.slice(0).reverse();
             orderedFields.forEach(fld => {
-                const label = section.querySelector(`.control-label[for=${fld.path.join('')}]`);
+                var start_match = fld.path.slice(0, Math.max(1, fld.path.length - 1)).join();
+                var end_match = fld.path[fld.path.length - 1];
+                var label = section.querySelector(`.control-label[for^=${start_match}][for$=${end_match}]`);
 
                 if (!!label) {
-                    const elt = label.parentElement;
-                    const parent = elt.parentElement;
+                    var elt = label.parentElement;
+                    var parent = elt.parentElement;
                     parent.removeChild(elt);
                     parent.insertBefore(elt, parent.querySelector('.form-group'));
                 }
@@ -232,6 +236,11 @@ class Reformulator {
             return;
         }
 
+        if (config.hasOwnProperty('show') && config.show.length === 0) {
+            subsectionList.classList.add('hide');
+            return;
+        }
+
         const subsectionListItems = subsectionList.querySelectorAll('li');
 
         if (typeof subsectionListItems !== 'undefined' && subsectionListItems.length > 0) {
@@ -250,8 +259,8 @@ class Reformulator {
             // Support subfields
             // Search for list indicies surrounded by double underscores. This is a workaround for fields that have `_<number>`
             // in their id
-            const configFieldId = listField.id.split(/__[0-9]__/).join('__');
-            if (listField.tagName === 'SECTION' && config.show.find(value => value.join('') === listField.id.replace(/_[0-9]+_/, ''))) {
+            const configFieldId = listField.id.split(/__\d+__/).join('__');
+            if (listField.tagName === 'SECTION' && config.hasOwnProperty('show') && config.show.find(value => value.join('') === listField.id.replace(/_[0-9]+_/, ''))) {
                 listField.classList.add('hide');
             } else {
                 this.parseSectionFields(listField, config, configFieldId);
