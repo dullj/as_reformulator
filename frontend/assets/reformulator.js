@@ -47,7 +47,11 @@ class Reformulator {
             }
         }));
 
-        $(() => { this.simplify(); });
+        $(() => {
+                    if (!this.controller == 'resources') {
+                        this.simplify();
+                    }
+                });
     }
 
     // Return a version of `fn` with exceptions caught & logged
@@ -63,6 +67,8 @@ class Reformulator {
     }
 
     simplify () {
+        if (document.querySelector('div.record-pane') == null || document.querySelector('div.record-pane').classList.contains('reformulator-simplified-me')) { return; }
+
         document.querySelectorAll('div.record-pane section, div.subrecord-form-container section')
             .forEach((section) => {
                 const sectionId = section.id;
@@ -70,9 +76,39 @@ class Reformulator {
                 if (typeof currentSectionConfig === 'undefined') { return; }
                 if (currentSectionConfig.moveSectionAfter) {
                     const targetSection = this.sectionForSelector(currentSectionConfig.moveSectionAfter);
+
                     if (targetSection && targetSection != section) {
-                        section.parentElement.removeChild(section);
-                        targetSection.parentElement.insertBefore(section, targetSection.nextElementSibling);
+                        // sections are occasionally nested in their own little readonly div
+                        // this is for readonly sections on an edit form
+                        // when moving to or from these we need to treat the nested div as the
+                        // unit for the move. so a bit of fancy footwork is required
+                        var mover = section;
+                        var moveTo = targetSection;
+                        var moverParent = mover.parentElement;
+                        var moveToParent = moveTo.parentElement;
+                        var commonParent = false;
+
+                        // doing this very explicitly in an attempt to manage potential confusion
+                        if (moverParent == moveToParent) {
+                            commonParent = moverParent;
+                        } else if (moverParent.parentElement == moveToParent) {
+                            commonParent = moveToParent;
+                            mover = moverParent;
+                        } else if (moverParent == moveToParent.parentElement) {
+                            commonParent = moverParent;
+                            moveTo = moveToParent;
+                        } else if (moverParent.parentElement == moveToParent.parentElement) {
+                            commonParent = moverParent.parentElement;
+                            mover = moverParent;
+                            moveTo = moveToParent;
+                        } else {
+                            console.log("Unable to find common parent for: ", mover, moveTo);
+                        }
+
+                        if (commonParent) {
+                            commonParent.removeChild(mover);
+                            commonParent.insertBefore(mover, moveTo.nextElementSibling);
+                        }
 
                         const sidebarLi = this.sidebarEntryForSection(sectionId);
                         if (!!sidebarLi) {
@@ -100,6 +136,8 @@ class Reformulator {
             });
 
         this.applyGlobalRules(document);
+
+        document.querySelector('div.record-pane').classList.add('reformulator-simplified-me');
     }
 
     sectionForSelector(selector) {
