@@ -47,11 +47,7 @@ class Reformulator {
             }
         }));
 
-        $(() => {
-                    if (!this.controller == 'resources') {
-                        this.simplify();
-                    }
-                });
+        $(() => { this.simplify(); });
     }
 
     // Return a version of `fn` with exceptions caught & logged
