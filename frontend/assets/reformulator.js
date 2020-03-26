@@ -63,71 +63,78 @@ class Reformulator {
     }
 
     simplify () {
-        if (document.querySelector('div.record-pane') == null || document.querySelector('div.record-pane').classList.contains('reformulator-simplified-me')) { return; }
+        // make sure we have a form to reformulate
+        if (document.querySelector('div.record-pane') == null) { return }
+
+        // make sure we're not double handling
+        if (document.querySelector('div.record-pane').classList.contains('reformulator-simplified-me')) { return }
+
+        // reorder sections
+        if (this.config.hasOwnProperty("sectionOrder")) {
+            // basic_information is always first, so we'll be rearranging sections under it
+            var basicInformation = document.querySelector('#basic_information');
+
+            // some sections are nested in their own readonly context,
+            // so we'll need to know who the real parent is
+            var parentContainer = basicInformation.parentElement;
+
+            // we'll also be reordering the sidebar so get the bits we'll need
+            var basicInformationSidebarEntry = this.sidebarEntryForSectionId('basic_information');
+            var sidebarContainer = basicInformationSidebarEntry.parentElement;
+
+            var orderedSections = this.config.sectionOrder.slice(0).reverse();
+            orderedSections.forEach(sectionId => {
+                if (sectionId == "basic_information") {
+                    console.warn("Reformulator is ignoring basic_information in sectionOrder");
+                    return;
+                }
+
+                var section = document.querySelector(`#${sectionId}`);
+
+                if (!!section) {
+                    // find the element that we're going to move
+                    var mover = section;
+                    // it might be one of those pesky nested sections
+                    // so walk up the tree until we get to the correct level
+                    while (mover.parentElement != parentContainer) {
+                        mover = mover.parentElement;
+                    }
+
+                    parentContainer.removeChild(mover);
+                    parentContainer.insertBefore(mover, basicInformation.nextElementSibling);
+                }
+
+                // order the sidebar
+                var sidebarMover = this.sidebarEntryForSectionId(sectionId);
+                if (!!sidebarMover) {
+                    sidebarContainer.removeChild(sidebarMover);
+   			            sidebarContainer.insertBefore(sidebarMover, basicInformationSidebarEntry.nextElementSibling);
+			          }
+            });
+        }
+
+        // hide sections
+        if (this.config.hasOwnProperty("sectionsToHide")) {
+            this.config.sectionsToHide.forEach(sectionId => {
+                var section = document.querySelector(`#${sectionId}`);
+
+                if (!!section) {
+                    section.classList.add('hide');
+                    const sidebarEntry = this.sidebarEntryForSectionId(sectionId);
+                    if (!!sidebarEntry) {
+                        sidebarEntry.classList.add('hide');
+                    }
+                }
+            });
+        }
+
 
         document.querySelectorAll('div.record-pane section, div.subrecord-form-container section')
             .forEach((section) => {
                 const sectionId = section.id;
                 const currentSectionConfig = this.config[sectionId];
                 if (typeof currentSectionConfig === 'undefined') { return; }
-                if (currentSectionConfig.moveSectionAfter) {
-                    const targetSection = this.sectionForSelector(currentSectionConfig.moveSectionAfter);
 
-                    if (targetSection && targetSection != section) {
-                        // sections are occasionally nested in their own little readonly div
-                        // this is for readonly sections on an edit form
-                        // when moving to or from these we need to treat the nested div as the
-                        // unit for the move. so a bit of fancy footwork is required
-                        var mover = section;
-                        var moveTo = targetSection;
-                        var moverParent = mover.parentElement;
-                        var moveToParent = moveTo.parentElement;
-                        var commonParent = false;
-
-                        // doing this very explicitly in an attempt to manage potential confusion
-                        if (moverParent == moveToParent) {
-                            commonParent = moverParent;
-                        } else if (moverParent.parentElement == moveToParent) {
-                            commonParent = moveToParent;
-                            mover = moverParent;
-                        } else if (moverParent == moveToParent.parentElement) {
-                            commonParent = moverParent;
-                            moveTo = moveToParent;
-                        } else if (moverParent.parentElement == moveToParent.parentElement) {
-                            commonParent = moverParent.parentElement;
-                            mover = moverParent;
-                            moveTo = moveToParent;
-                        } else {
-                            console.log("Unable to find common parent for: ", mover, moveTo);
-                        }
-
-                        if (commonParent) {
-                            commonParent.removeChild(mover);
-                            commonParent.insertBefore(mover, moveTo.nextElementSibling);
-                        }
-
-                        const sidebarLi = this.sidebarEntryForSection(sectionId);
-                        if (!!sidebarLi) {
-                            const targetSidebarLi = this.sidebarEntryForSection(currentSectionConfig.moveSectionAfter);
-                            const sidebarUl = sidebarLi.parentNode;
-
-                            var nextSib = targetSidebarLi.nextElementSibling;
-
-                            if (nextSib && nextSib != sidebarLi) {
-                                sidebarUl.removeChild(sidebarLi);
-   			                        sidebarUl.insertBefore(sidebarLi, nextSib);
-                            }
-			                  }
-                    }
-                }
-
-                if (typeof currentSectionConfig.show !== 'undefined' && currentSectionConfig.show.length === 0) {
-                    section.classList.add('hide');
-                    const sidebarElement = this.sidebarEntryForSection(sectionId);
-                    if (!!sidebarElement) {
-                        sidebarElement.classList.add('hide');
-                    }
-                }
                 this.parseSectionVisibility(section, currentSectionConfig);
             });
 
@@ -156,20 +163,9 @@ class Reformulator {
       return sections[sections.length - 1];
     }
 
-    sidebarEntryForSection(section) {
-      // Return the <li> for the given section id.
-      // Note that the basic_information section doesn't have the handy class, so or with href
+    sidebarEntryForSectionId(sectionId) {
       var sidebarSelector = 'div#archivesSpaceSidebar';
-      var sb =  document.querySelector(`${sidebarSelector} li[class*='sidebar-entry-${section}'], ${sidebarSelector} li > a[href='#${section}']`);
-
-      if (!sb) {
-        var sball = document.querySelectorAll(`${sidebarSelector} li[class*='sidebar-entry-'][class*='${section}'], ${sidebarSelector} li > a[href$='${section}']`);
-        if (sball.length == 0) {
-          sball = document.querySelectorAll(`${sidebarSelector} ul:first-of-type li`);
-        }
-        sb = sball[sball.length - 1];
-      }
-
+      var sb =  document.querySelector(`${sidebarSelector} li[class*='sidebar-entry-${sectionId}'], ${sidebarSelector} li > a[href='#${sectionId}']`);
       return sb ? sb.closest('li') : false;
     }
 
