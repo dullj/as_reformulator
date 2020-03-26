@@ -143,26 +143,6 @@ class Reformulator {
         document.querySelector('div.record-pane').classList.add('reformulator-simplified-me');
     }
 
-    sectionForSelector(selector) {
-      // try the old-fashioned way - direct id match
-      var section = document.querySelector(`#${selector}`);
-
-      if (!!section) {
-        return section;
-      }
-
-      // didn't find it so let's get crazy! match on section ids ending with the selector
-      var sectionSelector = 'section';
-      var sections = document.querySelectorAll(`${sectionSelector}[id$=${selector}]`);
-
-      if (sections.length == 0) {
-        // the crazy selector didn't find anything, so resort to all sections
-        sections = document.querySelectorAll(sectionSelector);
-      }
-
-      return sections[sections.length - 1];
-    }
-
     sidebarEntryForSectionId(sectionId) {
       var sidebarSelector = 'div#archivesSpaceSidebar';
       var sb =  document.querySelector(`${sidebarSelector} li[class*='sidebar-entry-${sectionId}'], ${sidebarSelector} li > a[href='#${sectionId}']`);
