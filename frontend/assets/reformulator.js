@@ -50,6 +50,7 @@ class Reformulator {
         this.logExceptions(() => { this.simplify(); });
     }
 
+
     // Return a version of `fn` with exceptions caught & logged
     logExceptions (fn) {
         return (...args) => {
@@ -61,6 +62,7 @@ class Reformulator {
             }
         };
     }
+
 
     simplify () {
         // make sure we have a form to reformulate
@@ -143,11 +145,13 @@ class Reformulator {
         document.querySelector('div.record-pane').classList.add('reformulator-simplified-me');
     }
 
+
     sidebarEntryForSectionId(sectionId) {
       var sidebarSelector = 'div#archivesSpaceSidebar';
       var sb =  document.querySelector(`${sidebarSelector} li[class*='sidebar-entry-${sectionId}'], ${sidebarSelector} li > a[href='#${sectionId}']`);
       return sb ? sb.closest('li') : false;
     }
+
 
     parseSectionFields (sectionField, config, configFieldId) {
         if (typeof config.show !== 'undefined') {
@@ -208,6 +212,7 @@ class Reformulator {
         }
     }
 
+
     parseSectionVisibility (section, config) {
         if (config.hasOwnProperty('fieldOrder')) {
             // the slice(0) here is powerful foo that clones the array rather than mutating it
@@ -262,15 +267,18 @@ class Reformulator {
         }
     }
 
+
     parseSubsectionVisibility (subsectionListItem, config, subsectionId) {
         // Look for matching subsection id prefix, and ensure that it is not a hidden field
         const listFields = subsectionListItem.querySelectorAll("[id^='" + subsectionId + "_']:not([type='hidden'])");
         listFields.forEach(listField => {
             // Support subfields
-            // Search for list indicies surrounded by double underscores. This is a workaround for fields that have `_<number>`
-            // in their id
+            // Search for list indicies surrounded by double underscores.
+            // This is a workaround for fields that have `_<number>` in their id
             const configFieldId = listField.id.split(/__\d+__/).join('__');
-            if (listField.tagName === 'SECTION' && config.hasOwnProperty('show') && config.show.find(value => value.join('') === listField.id.replace(/_[0-9]+_/, ''))) {
+            if (listField.tagName === 'SECTION' &&
+                config.hasOwnProperty('show') &&
+                config.show.find(value => value.join('') === listField.id.replace(/_[0-9]+_/, ''))) {
                 listField.classList.add('hide');
             } else {
                 this.parseSectionFields(listField, config, configFieldId);
@@ -278,9 +286,11 @@ class Reformulator {
         });
     }
 
+
     getItemPath (idPath, index) {
         return idPath.replace('${index}', index);
     }
+
 
     setInputValueWithChangeEvent (input, value) {
         if (input.value !== value) {
@@ -299,46 +309,48 @@ class Reformulator {
         }
     }
 
-    defaultValueForRule(rule) {
-	if (!rule) { return undefined; }
 
-	if (rule.hasOwnProperty('valueSelector')) {
-	    return document.querySelector(rule.valueSelector).value;
-	} else {
-	    return rule.value;
-	}
+    defaultValueForRule(rule) {
+        if (!rule) { return undefined; }
+
+        if (rule.hasOwnProperty('valueSelector')) {
+            return document.querySelector(rule.valueSelector).value;
+        } else {
+            return rule.value;
+        }
     }
+
 
     findElementsMatchingRule (rootElement, rule) {
         const result = [];
 
-        rootElement.querySelectorAll(rule.selector)
-                   .forEach(element => {
-                       if ((!rule.nameMustMatchRegex || element.name.match(rule.nameMustMatchRegex)) &&
-                           (!rule.nameMustNotMatchRegex || !element.name.match(rule.nameMustNotMatchRegex)) &&
-                           (!rule.onlyIfEmpty || !element.value)) {
-                           result.push(element);
-                       }
-                    });
+        rootElement.querySelectorAll(rule.selector).forEach(element => {
+            if ((!rule.nameMustMatchRegex || element.name.match(rule.nameMustMatchRegex)) &&
+                (!rule.nameMustNotMatchRegex || !element.name.match(rule.nameMustNotMatchRegex)) &&
+                (!rule.onlyIfEmpty || !element.value)) {
+                result.push(element);
+            }
+        });
 
         return result;
     }
 
+
     applyGlobalRules (element) {
-        // Set defaults as appropriate
+        // set default values
         (this.globalRules.defaultValues || []).forEach(rule => {
             this.findElementsMatchingRule(element, rule).forEach(match => {
-		this.setInputValueWithChangeEvent(match, this.defaultValueForRule(rule));
+                this.setInputValueWithChangeEvent(match, this.defaultValueForRule(rule));
             });
         });
 
-        // Hide fields marked for hiding
+        // hide
         (this.globalRules.hideFields || []).forEach(rule => {
             this.findElementsMatchingRule(element, rule).forEach(match => {
                 const hideMe = rule.hideClosestSelector ? match.closest(rule.hideClosestSelector) : match;
 
                 if (hideMe && !hideMe.matches('.hide')) {
-                    hideMe.classList.add('hide');
+                  hideMe.classList.add('hide');
                 }
             });
         });
