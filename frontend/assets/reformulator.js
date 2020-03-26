@@ -47,7 +47,7 @@ class Reformulator {
             }
         }));
 
-        $(() => { this.simplify(); });
+        this.logExceptions(() => { this.simplify(); });
     }
 
     // Return a version of `fn` with exceptions caught & logged
