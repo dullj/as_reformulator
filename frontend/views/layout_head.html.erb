@@ -5,3 +5,20 @@
   // before they get triggered.
   new Reformulator(<%== ASUtils.to_json(Reformulator.configuration) %>, '<%= controller_name %>');
 </script>
+
+<script>
+ var hideUnusedExtras = function () {
+   // Hide unused stuff
+   $('.dropdown-toggle.merge-action,' +
+     '.btn.merge-button,' +
+     '.add-event-action,' +
+     '.record-toolbar .transfer-action,' +
+     'button.suppress-record,' +
+     'button[data-confirm-btn-label="Publish All"],' +
+     'a.btn:contains("View Published")').remove();
+ };
+
+ $(document).on('loadedrecordform.aspace', hideUnusedExtras);
+ $(document).on('subrecordcreated.aspace', hideUnusedExtras);
+ $(hideUnusedExtras);
+</script>
