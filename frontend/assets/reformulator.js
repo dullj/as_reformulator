@@ -46,8 +46,6 @@ class Reformulator {
                 this.logExceptions(() => { this.applyGlobalRules(subform[0]); })();
             }
         }));
-
-        this.logExceptions(() => { this.simplify(); });
     }
 
 
