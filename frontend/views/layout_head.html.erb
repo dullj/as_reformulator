@@ -7,18 +7,22 @@
 </script>
 
 <script>
- var hideUnusedExtras = function () {
+ var hideUnusedExtras = function (scope) {
    // Hide unused stuff
-   $('.dropdown-toggle.merge-action,' +
+   var result = $('.dropdown-toggle.merge-action,' +
      '.btn.merge-button,' +
      '.add-event-action,' +
      '.record-toolbar .transfer-action,' +
      'button.suppress-record,' +
-     'button[data-confirm-btn-label="Publish All"],' +
-     'a.btn:contains("View Published")').remove();
+     'button[data-confirm-btn-label="Publish All"]', scope);
+   if (result.length > 0) {
+     result.remove();
+   }
  };
 
- $(document).on('loadedrecordform.aspace', hideUnusedExtras);
- $(document).on('subrecordcreated.aspace', hideUnusedExtras);
- $(hideUnusedExtras);
+ $(document).on('loadedrecordform.aspace', function(_, $form) { hideUnusedExtras($form) });
+ $(document).on('subrecordcreated.aspace', function(_, _, $container) { hideUnusedExtras($container) });
+ $(function () {
+   hideUnusedExtras(document.body);
+ });
 </script>
