@@ -4,7 +4,7 @@
 An ArchivesSpace plugin that supports customizing forms by hiding and reordering
 fields and sections and setting default values for fields.
 
-Developed by Hudson Molonglo in collaboration with GAIA Resources and
+Developed by Hudson Molonglo in collaboration with Gaia Resources and
 Recordkeeping Innovation as part of the Queensland State Archives Digital
 Archiving Program project.
 
