@@ -4,7 +4,6 @@
 class Reformulator
 
   def self.configure(config)
-    # FIXME: consider adding some validation
     @config = config
   end
 
